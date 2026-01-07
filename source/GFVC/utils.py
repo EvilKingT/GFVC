@@ -227,21 +227,49 @@ class RefereceImageDecoder:
             self.lic_dec = None
 
     def vtm_yuv_decompress(self, frame_idx:int):
-        os.system("./image_codecs/vtm/decode.sh "+self.img_input_dir+'frame'+str(frame_idx))
-        bin_file=self.img_input_dir+'frame'+str(frame_idx)+'.bin'
-        bits=os.path.getsize(bin_file)*8
-
-        #  read the rec frame (yuv420) and convert to rgb444
-        rec_ref_yuv=yuv420_to_rgb444(self.img_input_dir+'frame'+str(frame_idx)+'_dec.yuv', self.width, self.height, 0, 1, False, False)                  
-        return rec_ref_yuv[0]  , bits                                    
+        # 使用FFmpeg替代Linux脚本进行解码
+        bin_file = self.img_input_dir + 'frame' + frame_idx + '.bin'
+        rec_yuv = self.img_input_dir + 'frame' + frame_idx + '_rec.yuv'
+        
+        # 检查二进制文件是否存在
+        if not os.path.exists(bin_file):
+            raise FileNotFoundError(f"Binary file not found: {bin_file}")
+            
+        # 使用FFmpeg进行解码
+        cmd_decode = ['ffmpeg', '-nostats', '-loglevel', 'error',
+                      '-i', bin_file,
+                      '-f', 'rawvideo', '-pix_fmt', 'yuv420p',
+                      rec_yuv]
+        subprocess.call(cmd_decode, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        
+        bits = os.path.getsize(bin_file) * 8
+        
+        # 读取重构的YUV420帧并转换为RGB444
+        rec_ref_yuv = yuv420_to_rgb444(rec_yuv, self.width, self.height, 0, 1, False, False)
+        return rec_ref_yuv[0], bits
 
     def vtm_rgb_decompress(self, frame_idx:int):
-        os.system("./image_codecs/vtm/decode_rgb444.sh "+self.img_input_dir+'frame'+str(frame_idx))
-        bin_file=self.img_input_dir+'frame'+str(frame_idx)+'.bin'
-        bits=os.path.getsize(bin_file)*8
-
-        f_temp=open(self.img_input_dir+'frame'+str(frame_idx)+'_dec.rgb','rb')
-        img_rec=np.fromfile(f_temp,np.uint8,3*self.height*self.width).reshape((3,self.height,self.width))   # 3xHxW RGB            
+        # 使用FFmpeg替代Linux脚本进行RGB解码
+        bin_file = self.img_input_dir + 'frame' + frame_idx + '.bin'
+        rec_rgb = self.img_input_dir + 'frame' + frame_idx + '_rec.rgb'
+        
+        # 检查二进制文件是否存在
+        if not os.path.exists(bin_file):
+            raise FileNotFoundError(f"Binary file not found: {bin_file}")
+            
+        # 使用FFmpeg进行解码
+        cmd_decode = ['ffmpeg', '-nostats', '-loglevel', 'error',
+                      '-i', bin_file,
+                      '-f', 'rawvideo', '-pix_fmt', 'rgb24',
+                      rec_rgb]
+        subprocess.call(cmd_decode, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        
+        bits = os.path.getsize(bin_file) * 8
+        
+        # 读取重构的RGB帧
+        f_temp = open(rec_rgb, 'rb')
+        img_rec = np.fromfile(f_temp, np.uint8, 3 * self.height * self.width).reshape((3, self.height, self.width))   # 3xHxW RGB            
+        f_temp.close()
         return img_rec, bits
     
     def decompress(self, frame_idx:int):

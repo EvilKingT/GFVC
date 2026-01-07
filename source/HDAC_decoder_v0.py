@@ -74,7 +74,7 @@ if __name__ == "__main__":
     
     frames=int(opt.encoding_frames)
     width=opt.seq_width
-    height=opt.seq_width
+    height=opt.seq_height
     q_step=opt.quantization_factor
     qp = opt.iframe_qp
     iframe_format=opt.iframe_format
