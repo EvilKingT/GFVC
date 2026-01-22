@@ -1,0 +1,34 @@
+dataset/*
+experiment*
+slurm/*
+logs_slurm/*
+
+*.slurm
+
+source/GFVC/*/checkpoint/
+source/GFVC/*/train_logs/
+
+config/rdac*
+source/RDAC*
+source/GFVC/RDAC*
+
+*cdac*
+source/CDAC*
+source/GFVC/CDAC
+
+rd_results/
+
+evaluate/eval_utils/vmaf*
+evaluate/rdac_ablation*
+
+script*
+
+# source/GFVC/HDAC/bl_codecs/HEVC_HM_16_15
+# source/GFVC/HDAC/bl_codecs/VVC_VTM_22_2
+
+# 权重文件
+*.pth
+*.pth.tar
+*.pt
+*.ckpt
+
